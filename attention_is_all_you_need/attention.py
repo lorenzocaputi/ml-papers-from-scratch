@@ -202,4 +202,57 @@ class FeedForward(nn.Module):
         return self.net(x)
     
 
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        assert d_model % num_heads == 0
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_heads = d_model // num_heads
+
+        self.W_q = nn.Linear(self.d_model, self.d_model) # all heads in the same layer for now, then we'll split them
+        self.W_k = nn.Linear(self.d_model, self.d_model)
+        self.W_v = nn.Linear(self.d_model, self.d_model)
+        self.W_o = nn.Linear(self.d_model, self.d_model)
+
+    def forward(self, 
+                q,
+                k,
+                v,
+                attn_mask: torch.Tensor | None = None):
+        """
+        More general for of MHA. In general, the number of tokens acting as queries is not the same
+        as the number of tokens acting as keys and values. 
+        For instance, in encoder-decoder cross attention, the number of tokens acting as queries is 
+        the current length of the output sequence (which changes at each step), while the number of 
+        tokens acting as keys and values is the length of the input sequence (fixed).
+ 
+        Args:
+            q: (B, Tq, D)
+            k,v: (B, Tk, D)
+            attn_mask: bool mask broadcastable to (B, H, Tq, Tk)
+
+        Returns:
+            y: (B, Tq, D)
+            attn: (B, H, Tq, Tk)
+        """
+        
+        B, Tq, D = q.shape
+        Tk = k.shape[1]
+        H, Dh = self.num_heads, self.d_heads
+
+        Q = self.W_q(q).view(B, Tq, H, Dh).transpose(1,2) # (B, H, Tq, Dh)
+        K = self.W_k(k).view(B, Tk, H, Dh).transpose(1,2) # (B, H, Tk, Dh)
+        V = self.W_v(v).view(B, Tk, H, Dh).transpose(1,2) # (B, H, Tk, Dh)
+
+        # out: (B, H, Tq, Dh); attn: (B, H, Tq, Tk)
+        out, attn = scaled_dot_product_attention_masked(Q, K, V, attn_mask=attn_mask) 
+
+        # merge again the heads: (B, H, Tq, Dh) -> (B, Tq, D)
+        out = out.transpose(1,2).contiguous().view(B, Tq, D)
+
+        y = self.W_o(out)
+
+        return y, attn
+    
 

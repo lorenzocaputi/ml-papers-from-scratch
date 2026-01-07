@@ -1,6 +1,6 @@
 import torch
 from attention_is_all_you_need.attention import scaled_dot_product_attention_v0, scaled_dot_product_attention_v1, scaled_dot_product_attention_v2
-from attention_is_all_you_need.attention import MultiHeadSelfAttention
+from attention_is_all_you_need.attention import MultiHeadSelfAttention, MultiHeadAttention
 
 
 def test_scaled_dot_product_attention_v0():
@@ -191,5 +191,114 @@ def test_mhsa_combined_causal_and_padding_masks():
     assert torch.allclose(padded_mass, torch.zeros_like(padded_mass), atol=1e-6, rtol=0.0)
 
 
+def test_mha_general_shapes():
+    torch.manual_seed(0)
+
+    B, Tq, Tk, D, H = 2, 4, 7, 8, 2
+    q = torch.randn(B, Tq, D)
+    k = torch.randn(B, Tk, D)
+    v = torch.randn(B, Tk, D)
+
+    mha = MultiHeadAttention(d_model=D, num_heads=H)
+    y, attn = mha(q, k, v, attn_mask=None)
+
+    assert y.shape == (B, Tq, D)
+    assert attn.shape == (B, H, Tq, Tk)
+
+    # attention rows sum to 1 over keys
+    row_sums = attn.sum(dim=-1)  # (B, H, Tq)
+    assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-6, rtol=0.0)
+
+    # attention weights are probabilities
+    assert (attn >= 0).all()
+    assert (attn <= 1).all()
+
+
+def test_mha_general_backward():
+    torch.manual_seed(0)
+
+    B, Tq, Tk, D, H = 2, 3, 5, 8, 2
+    q = torch.randn(B, Tq, D, requires_grad=True)
+    k = torch.randn(B, Tk, D, requires_grad=True)
+    v = torch.randn(B, Tk, D, requires_grad=True)
+
+    mha = MultiHeadAttention(d_model=D, num_heads=H)
+
+    y, attn = mha(q, k, v, attn_mask=None)
+    loss = y.sum()
+    loss.backward()
+
+    assert q.grad is not None and torch.isfinite(q.grad).all()
+    assert k.grad is not None and torch.isfinite(k.grad).all()
+    assert v.grad is not None and torch.isfinite(v.grad).all()
+
+    # some parameter grads exist
+    grads = [p.grad for p in mha.parameters() if p.requires_grad]
+    assert any(g is not None for g in grads)
+
+
+def test_mha_general_key_padding_mask_blocks_columns():
+    """
+    Mask out some key positions (columns). Those attention weights should be ~0.
+    """
+    torch.manual_seed(0)
+
+    B, Tq, Tk, D, H = 2, 4, 6, 8, 2
+    q = torch.randn(B, Tq, D)
+    k = torch.randn(B, Tk, D)
+    v = torch.randn(B, Tk, D)
+
+    # True = real key, False = pad key
+    key_is_real = torch.tensor([
+        [True, True, True, False, False, False],
+        [True, True, False, False, False, False],
+    ])
+
+    # Broadcast to (B, 1, 1, Tk)
+    attn_mask = key_is_real.view(B, 1, 1, Tk)
+
+    mha = MultiHeadAttention(d_model=D, num_heads=H)
+    y, attn = mha(q, k, v, attn_mask=attn_mask)
+
+    assert y.shape == (B, Tq, D)
+    assert attn.shape == (B, H, Tq, Tk)
+
+    # all attention mass on masked key columns should be ~0
+    masked_key_cols = (~key_is_real).view(B, 1, 1, Tk)  # True where keys are padded
+    masked_mass = attn.masked_select(masked_key_cols)
+    assert torch.allclose(masked_mass, torch.zeros_like(masked_mass), atol=1e-6, rtol=0.0)
+
+    # rows still sum to 1 (softmax renormalizes over allowed keys)
+    row_sums = attn.sum(dim=-1)
+    assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-6, rtol=0.0)
+
+
+def test_mha_general_causal_mask_for_self_attention_case():
+    """
+    Even though MultiHeadAttention is general, it should handle a causal mask
+    when Tq == Tk (decoder self-attn scenario).
+    """
+    torch.manual_seed(0)
+
+    B, T, D, H = 2, 5, 8, 2
+    x = torch.randn(B, T, D)
+
+    # causal mask (T,T) -> (1,1,T,T)
+    causal = torch.tril(torch.ones(T, T, dtype=torch.bool)).view(1, 1, T, T)
+
+    mha = MultiHeadAttention(d_model=D, num_heads=H)
+    y, attn = mha(x, x, x, attn_mask=causal)
+
+    assert y.shape == (B, T, D)
+    assert attn.shape == (B, H, T, T)
+
+    # upper triangle must be ~0
+    upper = torch.triu(torch.ones(T, T, dtype=torch.bool), diagonal=1).view(1, 1, T, T)
+    future_mass = attn.masked_select(upper)
+    assert torch.allclose(future_mass, torch.zeros_like(future_mass), atol=1e-6, rtol=0.0)
+
+    # rows sum to 1
+    row_sums = attn.sum(dim=-1)
+    assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-6, rtol=0.0)
 
 
