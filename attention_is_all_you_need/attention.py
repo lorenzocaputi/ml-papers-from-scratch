@@ -2,6 +2,8 @@ import torch
 import math
 import torch.nn as nn
 
+#### WARM UP
+
 def scaled_dot_product_attention_v0(Q, K, V):
     """
     Scaled dot product attention, version 0: single head, single batch.
@@ -63,7 +65,7 @@ def scaled_dot_product_attention_v2(Q, K, V):
 
     return output, attention_weights
 
-###### FINAL IMPLEMENTATION
+###### ACTUAL IMPLEMENTATION
 
 def make_causal_mask(T:int, device=None) -> torch.Tensor:
     """
