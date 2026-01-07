@@ -202,25 +202,4 @@ class FeedForward(nn.Module):
         return self.net(x)
     
 
-class TransformerEncoderBlock(nn.Module):
-    def __init__(self, d_model: int, d_ff: int, num_heads: int):
-        super().__init__()
-        self.msa = MultiHeadSelfAttention(d_model, num_heads)
-        self.ffn = FeedForward(d_model, d_ff)
-
-        self.norm1 = nn.LayerNorm(d_model)
-        self.norm2 = nn.LayerNorm(d_model)
-
-    def forward(self, x, pad_is_real=None, causal=False):
-        # x: (B, T, D)
-
-        # Self-attention + residual + norm
-        attn_out, _ = self.msa(x, pad_is_real=pad_is_real, causal=causal)
-        x = self.norm1(x + attn_out) # (B, T, D)
-        
-        # FFN + residual + norm
-        ffn_out = self.ffn(x)
-        x = self.norm2(x + ffn_out) # (B, T, D)
-        
-        return x
 

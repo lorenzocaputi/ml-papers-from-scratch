@@ -1,6 +1,6 @@
 import torch
 from attention_is_all_you_need.attention import scaled_dot_product_attention_v0, scaled_dot_product_attention_v1, scaled_dot_product_attention_v2
-from attention_is_all_you_need.attention import MultiHeadSelfAttention, TransformerEncoderBlock
+from attention_is_all_you_need.attention import MultiHeadSelfAttention
 
 
 def test_scaled_dot_product_attention_v0():
@@ -191,28 +191,5 @@ def test_mhsa_combined_causal_and_padding_masks():
     assert torch.allclose(padded_mass, torch.zeros_like(padded_mass), atol=1e-6, rtol=0.0)
 
 
-def test_transformer_encoder_block_forward_and_backward():
-    torch.manual_seed(0)
-
-    B, T, D, H, DFF = 2, 5, 8, 2, 32
-    x = torch.randn(B, T, D, requires_grad=True)
-
-    pad_is_real = torch.tensor([
-        [True, True, True, True, False],
-        [True, True, True, False, False],
-    ])
-
-    block = TransformerEncoderBlock(d_model=D, d_ff=DFF, num_heads=H)
-    y = block(x, pad_is_real)
-
-    # check output shape
-    assert y.shape == (B, T, D)
-    assert torch.isfinite(y).all()
-
-    # check gradient propagates without exploding
-    loss = y.sum()
-    loss.backward()
-    assert x.grad is not None
-    assert torch.isfinite(x.grad).all()
 
 
