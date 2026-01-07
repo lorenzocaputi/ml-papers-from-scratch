@@ -1,5 +1,10 @@
 import torch
-from attention_is_all_you_need.attention import scaled_dot_product_attention_v0, scaled_dot_product_attention_v1, scaled_dot_product_attention_v2
+from attention_is_all_you_need.attention import (
+    scaled_dot_product_attention_v0, 
+    scaled_dot_product_attention_v1, 
+    scaled_dot_product_attention_v2
+    )
+
 from attention_is_all_you_need.attention import MultiHeadSelfAttention, MultiHeadAttention
 
 
