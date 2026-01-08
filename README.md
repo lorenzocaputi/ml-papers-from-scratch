@@ -1,6 +1,6 @@
-# ML_papers_in_code
+# ML-papers-from-scratch
 
-A collection of machine learning / deep learning paper reimplementations in PyTorch.
+A collection of foundational machine learning paper reimplementations in PyTorch.
 
 ## Structure
 - Each paper lives in its own folder (e.g., `attention_is_all_you_need/`)
