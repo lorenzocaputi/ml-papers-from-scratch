@@ -69,11 +69,11 @@ class TransformerDecoderBlock(nn.Module):
 
 class TransformerDecoder(nn.Module):
     def __init__(self, 
-                 d_model: int, 
-                 num_heads: int, 
-                 d_ff: int, 
-                 num_layers: int,
                  vocab_size: int,
+                 d_model: int,
+                 d_ff: int, 
+                 num_heads: int, 
+                 num_layers: int,
                  max_len: int = 512):
         
         super().__init__()
