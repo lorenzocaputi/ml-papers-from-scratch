@@ -82,7 +82,9 @@ def make_causal_mask(T:int, device=None) -> torch.Tensor:
 def make_padding_mask(pad_is_real: torch.Tensor, device=None) -> torch.Tensor:
     """
     pad_is_real: (B, T) boolean tensor, True for real tokens, False for pad.
-    Returns a mask broadcastable to attention scores.
+    Returns a mask broadcastable to attention scores. 
+    In this implementation it is just a datatype check, but can be made more
+    sophisticated.
 
     We'll use it later as (B, 1, 1, T) so it masks key positions (columns).
     """
@@ -90,6 +92,7 @@ def make_padding_mask(pad_is_real: torch.Tensor, device=None) -> torch.Tensor:
         raise ValueError("pad_is_true should be a boolean tensor of shape (B,T)") 
     return pad_is_real
 
+## this is what they ask in interviews together with the general MHA module below
 
 def scaled_dot_product_attention_masked(Q: torch.Tensor, 
                                         K: torch.Tensor, 
@@ -201,6 +204,8 @@ class FeedForward(nn.Module):
         # x: (B, T, D)
         return self.net(x)
     
+
+## this is what they ask in interviews together with the scaled_dot_product_attention function above
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_model, num_heads):

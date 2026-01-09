@@ -13,7 +13,7 @@ class TransformerEncoderBlock(nn.Module):
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
 
-    def forward(self, x, pad_is_real=None, causal=False):
+    def forward(self, x, pad_is_real: torch.Tensor | None =None, causal=False):
         # x: (B, T, D)
 
         # Self-attention + residual + norm
@@ -55,7 +55,7 @@ class TransformerEncoder(nn.Module):
         x = self.embed(tokens)
         x = self.pos_enc(x)
         for layer in self.layers:
-            x = layer(x, pad_is_real=pad_is_real)
+            x = layer(x, pad_is_real=pad_is_real, causal=False) # the encoder is NOT autoregressive so no causal mask (you restrict information flow if you put it)
         
         x = self.norm(x)
         return x
