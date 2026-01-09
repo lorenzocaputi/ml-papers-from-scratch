@@ -1,5 +1,5 @@
 import torch
-from attention_is_all_you_need.transformer_encoder import TransformerEncoderBlock, TransformerEncoderForTokenClassification
+from attention_is_all_you_need.implementation.transformer_encoder import TransformerEncoderBlock, TransformerEncoderForTokenClassification
 
 
 def test_transformer_encoder_block_forward_and_backward():

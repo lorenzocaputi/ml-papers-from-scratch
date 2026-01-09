@@ -1,5 +1,5 @@
 import torch
-from attention_is_all_you_need.transformer_seq2seq import TransformerSeq2Seq
+from attention_is_all_you_need.implementation.transformer_seq2seq import TransformerSeq2Seq
 
 def test_seq2seq_forward_backward():
     torch.manual_seed(0)

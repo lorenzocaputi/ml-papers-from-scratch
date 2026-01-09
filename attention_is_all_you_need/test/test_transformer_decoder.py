@@ -1,5 +1,5 @@
 import torch
-from attention_is_all_you_need.transformer_decoder import TransformerDecoderBlock
+from attention_is_all_you_need.implementation.transformer_decoder import TransformerDecoderBlock
 
 
 def test_decoder_block_causal_self_attention():

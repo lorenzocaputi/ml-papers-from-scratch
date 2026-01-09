@@ -1,5 +1,5 @@
 import torch
-from attention_is_all_you_need.positional_encoding import SinusoidalPositionalEncoding
+from attention_is_all_you_need.implementation.positional_encoding import SinusoidalPositionalEncoding
 
 
 def test_sinusoidal_positional_encoding_shape_and_determinism():

@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
 
-from attention_is_all_you_need.attention import (
+from attention_is_all_you_need.implementation.attention import (
     MultiHeadAttention,
     FeedForward,
     make_causal_mask,
     make_padding_mask
 )
 
-from attention_is_all_you_need.positional_encoding import SinusoidalPositionalEncoding
+from attention_is_all_you_need.implementation.positional_encoding import SinusoidalPositionalEncoding
 
 
 class TransformerDecoderBlock(nn.Module):

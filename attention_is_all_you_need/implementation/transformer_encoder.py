@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from attention_is_all_you_need.attention import MultiHeadSelfAttention, FeedForward
-from attention_is_all_you_need.positional_encoding import SinusoidalPositionalEncoding
+from attention_is_all_you_need.implementation.attention import MultiHeadSelfAttention, FeedForward
+from attention_is_all_you_need.implementation.positional_encoding import SinusoidalPositionalEncoding
 
 
 class TransformerEncoderBlock(nn.Module):

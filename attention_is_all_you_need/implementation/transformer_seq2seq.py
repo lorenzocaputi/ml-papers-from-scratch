@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from attention_is_all_you_need.transformer_encoder import TransformerEncoder
-from attention_is_all_you_need.transformer_decoder import TransformerDecoder
+from attention_is_all_you_need.implementation.transformer_encoder import TransformerEncoder
+from attention_is_all_you_need.implementation.transformer_decoder import TransformerDecoder
 
 class TransformerSeq2Seq(nn.Module):
     def __init__(self, 

@@ -1,11 +1,11 @@
 import torch
-from attention_is_all_you_need.attention import (
+from attention_is_all_you_need.implementation.attention import (
     scaled_dot_product_attention_v0, 
     scaled_dot_product_attention_v1, 
     scaled_dot_product_attention_v2
     )
 
-from attention_is_all_you_need.attention import MultiHeadSelfAttention, MultiHeadAttention
+from attention_is_all_you_need.implementation.attention import MultiHeadSelfAttention, MultiHeadAttention
 
 
 def test_scaled_dot_product_attention_v0():
